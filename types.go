@@ -36,8 +36,8 @@ func (mr *MultiResult) Append(r *Result) {
 }
 
 func (mr *MultiResult) List(fn func(int, *Result)) int {
-	lock.Lock()
-	defer lock.Unlock()
+	mr.mu.Lock()
+	defer mr.mu.Unlock()
 	for i, result := range mr.results {
 		if fn != nil {
 			fn(i, result)
