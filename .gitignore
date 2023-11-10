@@ -20,6 +20,5 @@
 
 # Go workspace file
 go.work
-=======
 .idea
->>>>>>> 8cbf0ab (update)
+main
