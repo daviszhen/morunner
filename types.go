@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
 
-type callback func(kase *testKase)
+type callback func(kase *testKase, startTime, endTime, moTimeNow time.Time)
 
 type testKase struct {
 	sql  string
@@ -14,10 +15,24 @@ type testKase struct {
 }
 
 type Result struct {
-	statement   string
-	account     string
-	status      string
-	response_at time.Time
+	localQueryStart time.Time
+	localQueryEnd   time.Time
+	moTimeNow       time.Time
+	statement       string
+	account         string
+	status          string
+	response_at     time.Time
+}
+
+func (r *Result) String() string {
+	return fmt.Sprintf("startTime(local):%v execTime:%v moStartTime:%v statement: %s, account: %s, status: %s, response_at: %v\n",
+		r.localQueryStart,
+		r.localQueryEnd.Sub(r.localQueryStart),
+		r.moTimeNow,
+		r.statement,
+		r.account,
+		r.status,
+		r.response_at)
 }
 
 type MultiResult struct {

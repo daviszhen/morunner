@@ -42,7 +42,7 @@ var lastResults = &MultiResult{
 var kases = []*testKase{
 	{
 		sql: "select now()",
-		hook: func(kase *testKase) {
+		hook: func(kase *testKase, startTime, endTime, moTimeNow time.Time) {
 			if ptr, ok := kase.dst[0].(*time.Time); ok {
 				moTimeNow = *ptr
 				//fmt.Fprintf(os.Stderr, "now: %v\n", moTimeNow)
@@ -54,13 +54,16 @@ var kases = []*testKase{
 	},
 	{
 		sql: "select statement,account,status,response_at from system.statement_info order by response_at desc limit 5",
-		hook: func(kase *testKase) {
+		hook: func(kase *testKase, startTime, endTime, moTimeNow time.Time) {
 			if ptr, ok := kase.dst[3].(*time.Time); ok {
 				r := &Result{
-					statement:   *kase.dst[0].(*string),
-					account:     *kase.dst[1].(*string),
-					status:      *kase.dst[2].(*string),
-					response_at: *kase.dst[3].(*time.Time),
+					localQueryStart: startTime,
+					localQueryEnd:   endTime,
+					moTimeNow:       moTimeNow,
+					statement:       *kase.dst[0].(*string),
+					account:         *kase.dst[1].(*string),
+					status:          *kase.dst[2].(*string),
+					response_at:     *kase.dst[3].(*time.Time),
 				}
 				if ptr.Before(moTimeNow.Add(-time.Hour)) {
 					//fmt.Fprintf(os.Stderr,"invalid time. statement: %s, account: %s, status: %s, response_at: %v\n",
@@ -143,12 +146,8 @@ func httpServer() {
 		_, _ = writer.Write([]byte(fmt.Sprintf("\n\n")))
 
 		printResult := func(i int, result *Result) {
-			_, _ = writer.Write([]byte(fmt.Sprintf("result %d: statement: %s, account: %s, status: %s, response_at: %v\n",
-				i,
-				result.statement,
-				result.account,
-				result.status,
-				result.response_at)))
+			_, _ = writer.Write([]byte(fmt.Sprintf("result %d: %v",
+				i, result.String())))
 		}
 
 		//last results
@@ -211,11 +210,13 @@ func runCases() {
 }
 
 func runCase(kase *testKase) error {
+	start := time.Now()
 	result, err := conn.Query(kase.sql)
 	if err != nil {
 		return err
 	}
 	defer result.Close()
+	end := time.Now()
 
 	for result.Next() {
 		err = result.Scan(kase.dst...)
@@ -223,7 +224,7 @@ func runCase(kase *testKase) error {
 			return errors.Join(err, result.Err())
 		}
 		if kase.hook != nil {
-			kase.hook(kase)
+			kase.hook(kase,start, end, moTimeNow)
 		}
 	}
 	return err
