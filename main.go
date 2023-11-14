@@ -27,7 +27,7 @@ var (
 var conn *sql.DB
 var logger *zap.Logger
 
-var moTimeNow time.Time
+var moStartTime time.Time
 
 const maxLen = 100
 
@@ -42,9 +42,9 @@ var lastResults = &MultiResult{
 var kases = []*testKase{
 	{
 		sql: "select now()",
-		hook: func(kase *testKase, startTime, endTime, moTimeNow time.Time) {
+		hook: func(kase *testKase, startTime, endTime, _ time.Time) {
 			if ptr, ok := kase.dst[0].(*time.Time); ok {
-				moTimeNow = *ptr
+				moStartTime = *ptr
 				//fmt.Fprintf(os.Stderr, "now: %v\n", moTimeNow)
 			}
 		},
@@ -134,7 +134,7 @@ func httpServer() {
 		//status
 		_, _ = writer.Write([]byte(fmt.Sprintf("runStart %v last %v\n", runStart, time.Since(runStart))))
 		_, _ = writer.Write([]byte(fmt.Sprintf("runCount %d\n", runCount)))
-		_, _ = writer.Write([]byte(fmt.Sprintf("moTimeNow %v\n", moTimeNow)))
+		_, _ = writer.Write([]byte(fmt.Sprintf("queryStartTime(matrixone) %v\n", moStartTime)))
 
 		_, _ = writer.Write([]byte(fmt.Sprintf("\n\n")))
 
@@ -224,7 +224,7 @@ func runCase(kase *testKase) error {
 			return errors.Join(err, result.Err())
 		}
 		if kase.hook != nil {
-			kase.hook(kase,start, end, moTimeNow)
+			kase.hook(kase, start, end, moStartTime)
 		}
 	}
 	return err
