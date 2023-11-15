@@ -6,12 +6,13 @@ last_commit_id=""
 mo_runner_path=""
 
 check_os(){
-    os=`uname -a`
-    if [[ $os =~ "Darwin" ]]
+    os=`uname -s`
+    echo $os
+    if [[ "$os" = "Darwin" ]]
     then
         echo "Mac OS"
         mo_runner_path="/Users/pengzhen/Documents/GitHub/morunner"
-    elif [[ $os =~ "Linux" ]]
+    elif [[ "$os" = "Linux" ]]
     then
         echo "Linux"
         mo_runner_path="/root/morunner"
