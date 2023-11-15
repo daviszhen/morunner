@@ -52,7 +52,7 @@ run_morunner(){
 }
 
 main(){
-    a = 1
+    a=1
     while [ $a -ne 0]
     do
         date
