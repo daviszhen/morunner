@@ -1,6 +1,6 @@
 # morunner
 
-go build main.go types.go
+go build -o morunner main.go types.go
 
 ./main --loop --url freetier-01.cn-hangzhou.cluster.aliyun-dev.matrixone.tech --user dump --password 
 

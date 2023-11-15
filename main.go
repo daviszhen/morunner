@@ -33,10 +33,12 @@ const maxLen = 100
 
 var failedResults = &MultiResult{
 	maxCount: maxLen,
+	outFile: "failedrs.csv",
 }
 
 var lastResults = &MultiResult{
 	maxCount: 10,
+	outFile: "lastrs.csv",
 }
 
 var kases = []*testKase{
@@ -101,6 +103,12 @@ func main() {
 	defer func() {
 		logger.Info("exit")
 	}()
+
+	failedResults.Init()
+	defer failedResults.Close()
+
+	lastResults.Init()
+	defer lastResults.Close()
 
 	go httpServer()
 
