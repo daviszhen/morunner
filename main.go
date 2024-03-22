@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -22,6 +25,7 @@ var (
 
 	runCount int
 	runStart time.Time
+	reqCount int
 )
 
 var conn *sql.DB
@@ -33,12 +37,12 @@ const maxLen = 100
 
 var failedResults = &MultiResult{
 	maxCount: maxLen,
-	outFile: "failedrs.csv",
+	outFile:  "failedrs.csv",
 }
 
 var lastResults = &MultiResult{
 	maxCount: 10,
-	outFile: "lastrs.csv",
+	outFile:  "lastrs.csv",
 }
 
 var kases = []*testKase{
@@ -88,6 +92,14 @@ var kases = []*testKase{
 }
 
 func main() {
+	flag.IntVar(&reqCount, "reqcount", 100, "request count per second")
+	flag.Parse()
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, syscall.SIGTERM, syscall.SIGINT)
+	startTicker(sigchan, reqCount)
+}
+
+func test1() {
 	flag.BoolVar(&loop, "loop", false, "loop")
 	flag.IntVar(&sleep, "sleep", 60, "sleep timeout seconds")
 	flag.IntVar(&reconnectInterval, "reconnect-gap", 30, "reconnect interval seconds")
