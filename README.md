@@ -1,7 +1,7 @@
 # morunner
 
 ## build
-go build -o main main.go types.go
+go build -o main *.go
 
 ## 测试OOM
 
