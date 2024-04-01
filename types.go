@@ -12,9 +12,13 @@ import (
 type callback func(kase *testKase, startTime, endTime, moTimeNow time.Time)
 
 type testKase struct {
-	sql  string
-	dst  []any
-	hook callback
+	sql         string
+	sqlTemplate string
+	dst         []any
+	res         string
+	inputParams []string
+	prepare     callback
+	hook        callback
 }
 
 type Result struct {
@@ -42,12 +46,12 @@ type MultiResult struct {
 	mu       sync.Mutex
 	results  []*Result
 	maxCount int
-	outFile string
-	outF *os.File
-	csvWr *csv.Writer
+	outFile  string
+	outF     *os.File
+	csvWr    *csv.Writer
 }
 
-func (mr *MultiResult) Init(){
+func (mr *MultiResult) Init() {
 	mr.mu.Lock()
 	defer mr.mu.Unlock()
 	var err error
@@ -58,11 +62,11 @@ func (mr *MultiResult) Init(){
 	mr.csvWr = csv.NewWriter(mr.outF)
 }
 
-func (mr *MultiResult) Close(){
+func (mr *MultiResult) Close() {
 	mr.mu.Lock()
 	defer mr.mu.Unlock()
 	mr.csvWr.Flush()
-	_= mr.outF.Close()
+	_ = mr.outF.Close()
 }
 
 func (mr *MultiResult) Append(r *Result) {
@@ -76,8 +80,8 @@ func (mr *MultiResult) Append(r *Result) {
 	err = mr.csvWr.Write([]string{
 		r.String(),
 	})
-	if err != nil{
-		logger.Error("write %s into csv failed",zap.String("result",r.String()), zap.Error(err))
+	if err != nil {
+		logger.Error("write %s into csv failed", zap.String("result", r.String()), zap.Error(err))
 		return
 	}
 	mr.csvWr.Flush()

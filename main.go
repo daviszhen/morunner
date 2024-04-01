@@ -28,6 +28,33 @@ var (
 	reqCount int
 )
 
+type TestCase int
+
+const (
+	ShortConn TestCase = iota
+	ISSUE15190
+	CaseEnd
+)
+
+var kase2str = map[TestCase]string{
+	ShortConn:  "shortconn",
+	ISSUE15190: "issue15190",
+}
+
+func (kase TestCase) String() string {
+	return kase2str[kase]
+}
+
+func allTestCases() []string {
+	ret := make([]string, 0)
+	for _, s := range kase2str {
+		ret = append(ret, s)
+	}
+	return ret
+}
+
+var kase TestCase
+
 var conn *sql.DB
 var logger *zap.Logger
 
@@ -92,14 +119,8 @@ var kases = []*testKase{
 }
 
 func main() {
+	flag.IntVar((*int)(&kase), "testcase", int(ShortConn), "test case kind")
 	flag.IntVar(&reqCount, "reqcount", 100, "request count per second")
-	flag.Parse()
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGTERM, syscall.SIGINT)
-	startTicker(sigchan, reqCount)
-}
-
-func test1() {
 	flag.BoolVar(&loop, "loop", false, "loop")
 	flag.IntVar(&sleep, "sleep", 60, "sleep timeout seconds")
 	flag.IntVar(&reconnectInterval, "reconnect-gap", 30, "reconnect interval seconds")
@@ -115,6 +136,27 @@ func test1() {
 	defer func() {
 		logger.Info("exit")
 	}()
+
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, syscall.SIGTERM, syscall.SIGINT)
+	switch kase {
+	case ShortConn:
+		startTicker(sigchan, reqCount)
+	case ISSUE15190:
+		issue15190()
+	}
+}
+
+func test1() {
+	flag.BoolVar(&loop, "loop", false, "loop")
+	flag.IntVar(&sleep, "sleep", 60, "sleep timeout seconds")
+	flag.IntVar(&reconnectInterval, "reconnect-gap", 30, "reconnect interval seconds")
+	flag.StringVar(&url, "url", "127.0.0.1", "url")
+	flag.StringVar(&port, "port", "6001", "port")
+	flag.StringVar(&user, "user", "dump", "user")
+	flag.StringVar(&password, "password", "111", "password")
+	flag.StringVar(&httpPort, "http-port", "8080", "http port")
+	flag.Parse()
 
 	failedResults.Init()
 	defer failedResults.Close()
@@ -204,6 +246,7 @@ func connectDb(url, port, user, password string) (*sql.DB, error) {
 
 func establishConn() {
 	var err error
+	var errCount int
 	for conn == nil {
 		conn, err = connectDb(url, port, user, password)
 		if err != nil {
@@ -214,6 +257,10 @@ func establishConn() {
 			}
 
 			time.Sleep(time.Duration(reconnectInterval) * time.Second)
+			errCount++
+			if errCount > 3 {
+				break
+			}
 		}
 	}
 }
@@ -231,8 +278,12 @@ func runCases() {
 
 func runCase(kase *testKase) error {
 	start := time.Now()
+	if kase.prepare != nil {
+		kase.prepare(kase, start, start, start)
+	}
 	result, err := conn.Query(kase.sql)
 	if err != nil {
+		logger.Error("query failed", zap.String("sql", kase.sql), zap.Error(err))
 		return err
 	}
 	defer result.Close()
