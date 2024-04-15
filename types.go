@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"go.uber.org/zap"
 	"os"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type callback func(kase *testKase, startTime, endTime, moTimeNow time.Time)
@@ -19,6 +20,7 @@ type testKase struct {
 	inputParams []string
 	prepare     callback
 	hook        callback
+	dropResult  bool
 }
 
 type Result struct {

@@ -5,12 +5,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"go.uber.org/zap"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -33,12 +34,14 @@ type TestCase int
 const (
 	ShortConn TestCase = iota
 	ISSUE15190
+	Composite
 	CaseEnd
 )
 
 var kase2str = map[TestCase]string{
 	ShortConn:  "shortconn",
 	ISSUE15190: "issue15190",
+	Composite:  "composite",
 }
 
 func (kase TestCase) String() string {
@@ -137,6 +140,10 @@ func main() {
 		logger.Info("exit")
 	}()
 
+	defer func() {
+		closeConn()
+	}()
+
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGTERM, syscall.SIGINT)
 	switch kase {
@@ -144,6 +151,8 @@ func main() {
 		startTicker(sigchan, reqCount)
 	case ISSUE15190:
 		issue15190()
+	case Composite:
+		composite()
 	}
 }
 
@@ -265,6 +274,12 @@ func establishConn() {
 	}
 }
 
+func closeConn() {
+	if conn != nil {
+		_ = conn.Close()
+	}
+}
+
 func runCases() {
 	establishConn()
 	for _, kase := range kases {
@@ -289,13 +304,15 @@ func runCase(kase *testKase) error {
 	defer result.Close()
 	end := time.Now()
 
-	for result.Next() {
-		err = result.Scan(kase.dst...)
-		if err != nil {
-			return errors.Join(err, result.Err())
-		}
-		if kase.hook != nil {
-			kase.hook(kase, start, end, moStartTime)
+	if !kase.dropResult {
+		for result.Next() {
+			err = result.Scan(kase.dst...)
+			if err != nil {
+				return errors.Join(err, result.Err())
+			}
+			if kase.hook != nil {
+				kase.hook(kase, start, end, moStartTime)
+			}
 		}
 	}
 	return err
