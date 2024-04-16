@@ -41,6 +41,46 @@ var kasesComposite = []*testKase{
 		sql:        "show collation",
 		dropResult: true,
 	},
+	{
+		sql:        "explain verbose select * from mo_catalog.mo_account ma ;",
+		dropResult: true,
+	},
+	{
+		sql:        "explain analyze select * from mo_catalog.mo_account ma ;",
+		dropResult: true,
+	},
+	{
+		sql:        "explain analyze verbose select * from mo_catalog.mo_account ma ;",
+		dropResult: true,
+	},
+	{
+		sql:        "prepare st1 from select * from  mo_catalog.mo_account ma ;",
+		dropResult: true,
+	},
+	{
+		sql:        "execute st1 ",
+		dropResult: true,
+	},
+	{
+		sql:        "explain force execute st1 ",
+		dropResult: true,
+	},
+	{
+		sql:        "explain verbose force execute st1 ",
+		dropResult: true,
+	},
+	{
+		sql:        "explain analyze force execute st1 ",
+		dropResult: true,
+	},
+	{
+		sql:        "explain analyze verbose force execute st1 ",
+		dropResult: true,
+	},
+	{
+		sql:        "deallocate prepare st1 ",
+		dropResult: true,
+	},
 }
 
 func composite() {
