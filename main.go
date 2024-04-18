@@ -35,6 +35,7 @@ const (
 	ShortConn TestCase = iota
 	ISSUE15190
 	Composite
+	Load
 	CaseEnd
 )
 
@@ -42,6 +43,7 @@ var kase2str = map[TestCase]string{
 	ShortConn:  "shortconn",
 	ISSUE15190: "issue15190",
 	Composite:  "composite",
+	Load:       "load",
 }
 
 func (kase TestCase) String() string {
@@ -153,6 +155,8 @@ func main() {
 		issue15190()
 	case Composite:
 		composite()
+	case Load:
+		load()
 	}
 }
 
