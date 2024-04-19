@@ -24,7 +24,7 @@ var kasesLoad = []*testKase{
 		sql:         "",
 		sqlTemplate: "LOAD DATA INFILE '%s' INTO TABLE morunner.t1 FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n' PARALLEL 'TRUE';\n",
 		prepare: func(kase *testKase, startTime, endTime, moTimeNow time.Time) {
-			csvPStr := path.Join(path.Dir(getCurrentAbPath()), "./test.csv")
+			csvPStr := path.Join(getCurrentAbPath(), "./test.csv")
 			fmt.Println(csvPStr)
 			kase.sql = fmt.Sprintf(kase.sqlTemplate, csvPStr)
 		},
@@ -33,7 +33,7 @@ var kasesLoad = []*testKase{
 		sql:         "",
 		sqlTemplate: "LOAD DATA INFILE '%s' INTO TABLE morunner.t1 FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\\n' PARALLEL 'TRUE';\n",
 		prepare: func(kase *testKase, startTime, endTime, moTimeNow time.Time) {
-			csvPStr := path.Join(path.Dir(getCurrentAbPath()), "./test.csv")
+			csvPStr := path.Join(getCurrentAbPath(), "./test.csv")
 			fmt.Println(csvPStr)
 			kase.sql = fmt.Sprintf(kase.sqlTemplate, csvPStr)
 		},
