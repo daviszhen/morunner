@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 )
 
@@ -88,6 +90,7 @@ func composite() {
 	var err error
 	for i := 0; i < 5; i++ {
 		for _, t := range kasesComposite {
+			fmt.Println("run case:", t.sql)
 			err = runCase(t)
 			if err != nil {
 				logger.Error("kase", zap.String("sql", t.sql), zap.Error(err))

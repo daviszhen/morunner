@@ -32,18 +32,18 @@ var (
 type TestCase int
 
 const (
-	ShortConn TestCase = iota
-	ISSUE15190
-	Composite
+	ShortConn  TestCase = iota
+	ISSUE15190          // save_query_result
+	ExecInFrontendSql
 	Load
 	CaseEnd
 )
 
 var kase2str = map[TestCase]string{
-	ShortConn:  "shortconn",
-	ISSUE15190: "issue15190",
-	Composite:  "composite",
-	Load:       "load",
+	ShortConn:         "shortconn",
+	ISSUE15190:        "issue15190",
+	ExecInFrontendSql: "composite",
+	Load:              "load",
 }
 
 func (kase TestCase) String() string {
@@ -153,7 +153,7 @@ func main() {
 		startTicker(sigchan, reqCount)
 	case ISSUE15190:
 		issue15190()
-	case Composite:
+	case ExecInFrontendSql:
 		composite()
 	case Load:
 		load()

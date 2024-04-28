@@ -39,8 +39,15 @@ var kasesLoad = []*testKase{
 		},
 	},
 	{
-		sql:        "select * from t1;",
-		dropResult: true,
+		sql: "select * from t1;",
+		prepare: func(kase *testKase, startTime, endTime, moTimeNow time.Time) {
+			kase.dst = make([]any, 2)
+			kase.dst[0] = new(string)
+			kase.dst[1] = new(string)
+		},
+		hook: func(kase *testKase, startTime, endTime, _ time.Time) {
+			fmt.Println(*kase.dst[0].(*string), *kase.dst[1].(*string))
+		},
 	},
 	{
 		sql: "drop database if exists morunner;",

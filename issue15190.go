@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var kases15190 = []*testKase{
 	{
-		sql: "show session variables like '%save_query_result%';",
+		sql: "set global save_query_result = on;show global variables like '%save_query_result%';",
 		dst: []any{
 			new(string),
 			new(string),
@@ -23,7 +24,7 @@ var kases15190 = []*testKase{
 		},
 	},
 	{
-		sql: "explain select * from mo_catalog.mo_user;",
+		sql: "/* cloud_user */ explain select * from mo_catalog.mo_user;",
 		dst: []any{
 			new(string),
 		},
@@ -66,6 +67,9 @@ var kases15190 = []*testKase{
 		hook: func(kase *testKase, startTime, endTime, _ time.Time) {
 
 		},
+	},
+	{
+		sql: "set global save_query_result = off;",
 	},
 }
 
