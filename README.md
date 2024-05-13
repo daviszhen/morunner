@@ -46,6 +46,7 @@ http_proxy="" all_proxy="" curl http 127.0.0.1:8080/status
         - [ ]  FE 处理的语句回归
 - [ ]  proxy和session迁移
 
+    **测试tpcc场景**
 
       //启动集群
     
@@ -59,9 +60,9 @@ http_proxy="" all_proxy="" curl http 127.0.0.1:8080/status
       create database tpcc;
     
       cd mo-tpcc
-      ./runSQL.sh [props.mo](http://props.mo/) tableCreates
+      ./runSQL.sh props.mo tableCreates
       mysql -h127.0.0.1 -udump -P6009 -p111 tpcc <load-tpcc-w1.sql
-      ./runBenchmark.sh [props.mo](http://props.mo/)
+      ./runBenchmark.sh props.mo
     
       然后再启动cn2:
     
@@ -79,6 +80,44 @@ http_proxy="" all_proxy="" curl http 127.0.0.1:8080/status
       //这个是设置会working状态，就会再次均衡连接
     
       select mo_ctl('cn', 'workstate', 'uuid:1');
+
+   **测试begin和autocommit = 0场景**
+
+    session 1
+      create account acc1 admin_name "root" identified by '111';
+
+    session2 
+      mysql --local-infile -h 127.0.0.1 -P 6009 -uacc1:root -p111
+
+      begin;
+      select * from mo_catalog.mo_user;
+
+      {
+        //autocommit = 0 的场景
+        set @@autocommit = 0;
+        select @@autocommit;
+        select * from mo_catalog.mo_user;
+      }
+        
+    session1
+      //将acc1 标记到node5上
+      select mo_ctl('cn','label','dd1dccb5-4d3c-41f8-b482-5251dc7a41bf:account:acc1');
+
+      //正确结果是acc1 还在node4上。因为事务未结束 
+      select node_id,conn_id,account,user from processlist() t  order by conn_id;
+
+    session2
+      commit / rollback;
+
+      {
+        //autocommit = 0 的场景
+        commit / rollback;
+      }
+
+    session1
+      //观察acc1迁移到node5。因为事务结束了。
+      select node_id,conn_id,account,user from processlist() t  order by conn_id;
+
 
 - [ ] Kill问题
 - [ ] sysbench 点查
