@@ -68,6 +68,7 @@ var kases15190 = []*testKase{
 
 		},
 	},
+	//!!!NOTE: do not change content above
 	{
 		sql: "set global save_query_result = off;",
 	},
@@ -100,5 +101,14 @@ func issue15190() {
 	realRes := *(kases15190[3].dst[0].(*string))
 	if want != realRes {
 		logger.Error("not equal", zap.String("want", want), zap.String("real", realRes))
+	}
+
+	for _, t := range kasesComposite {
+		fmt.Println("run case:", t.sql)
+		err = runCase(t)
+		if err != nil {
+			logger.Error("kase", zap.String("sql", t.sql), zap.Error(err))
+			return
+		}
 	}
 }
