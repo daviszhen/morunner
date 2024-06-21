@@ -5,6 +5,12 @@
 ## FE回归
 
 ### build
+
+安装pcap库
+
+ubuntu : apt install libpcap-dev
+centos : yum install libpcap-devel
+
 go build -o main *.go
 
 ### 测试OOM
