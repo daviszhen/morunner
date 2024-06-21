@@ -104,9 +104,20 @@ func handleMysql(pkg gopacket.Packet, payload []byte, regexpr *regexp.Regexp) er
 			return nil
 		}
 
+		fmt.Println()
 		fmt.Println("net", net.Src(), ":", trans.Src(), "=>", net.Dst(), ":", trans.Dst())
 		if displayBytesLimit > 0 {
-			fmt.Println(string(cmdContent[:min(displayBytesLimit, cmdLen)]))
+			dlen := min(displayBytesLimit, cmdLen)
+			if displayBinary {
+				fmt.Print("bin:")
+				for _, x := range cmdContent[:dlen] {
+					fmt.Printf("%x ", x)
+				}
+				fmt.Println()
+			}
+			if displayText {
+				fmt.Println("text:", string(cmdContent[:dlen]))
+			}
 		}
 	}
 	return nil

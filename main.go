@@ -28,6 +28,8 @@ var (
 	regexpr                   string
 	displayBytesLimit         int
 	srcPort, dstPort          string
+	displayBinary             bool
+	displayText               bool
 
 	runCount int
 	runStart time.Time
@@ -147,6 +149,8 @@ func main() {
 	flag.IntVar(&displayBytesLimit, "display-bytes-limit", 0, "display bytes limit")
 	flag.StringVar(&srcPort, "srcport", "", "source port")
 	flag.StringVar(&dstPort, "dstport", "", "destination port")
+	flag.BoolVar(&displayBinary, "display-binary", false, "display binary")
+	flag.BoolVar(&displayText, "display-text", true, "display text")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
