@@ -28,6 +28,10 @@ http_proxy="" all_proxy="" curl http 127.0.0.1:8080/status
 
 ./main -testcase 3
 
+### 分析pcap文件
+
+./main -testcase 4 -pcap-fname path -pcap-filter tcp -regexpr "" -display-bytes-limit 20
+
 
 ## PR checklist
 

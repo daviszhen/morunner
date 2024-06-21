@@ -23,6 +23,10 @@ var (
 	reconnectInterval         int
 	url, port, user, password string
 	httpPort                  string
+	pcapFileName              string
+	pcapFilter                string
+	regexpr                   string
+	displayBytesLimit         int
 
 	runCount int
 	runStart time.Time
@@ -36,6 +40,7 @@ const (
 	ISSUE15190          // save_query_result
 	ExecInFrontendSql
 	Load
+	DumpMysql
 	CaseEnd
 )
 
@@ -44,6 +49,7 @@ var kase2str = map[TestCase]string{
 	ISSUE15190:        "issue15190",
 	ExecInFrontendSql: "composite",
 	Load:              "load",
+	DumpMysql:         "dumpmysql",
 }
 
 func (kase TestCase) String() string {
@@ -134,6 +140,10 @@ func main() {
 	flag.StringVar(&user, "user", "dump", "user")
 	flag.StringVar(&password, "password", "111", "password")
 	flag.StringVar(&httpPort, "http-port", "8080", "http port")
+	flag.StringVar(&pcapFileName, "pcap-fname", "", "pcap file name")
+	flag.StringVar(&pcapFilter, "pcap-filter", "", "pcap filter")
+	flag.StringVar(&regexpr, "regexpr", "", "regexpr")
+	flag.IntVar(&displayBytesLimit, "display-bytes-limit", 0, "display bytes limit")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
@@ -157,6 +167,11 @@ func main() {
 		composite()
 	case Load:
 		load()
+	case DumpMysql:
+		err := analyzeDir(pcapFileName, pcapFilter, regexpr)
+		if err != nil {
+			logger.Error(err.Error())
+		}
 	}
 }
 
