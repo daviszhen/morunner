@@ -84,12 +84,20 @@ func handleMysql(pkg gopacket.Packet, payload []byte, regexpr *regexp.Regexp) er
 		return nil
 	}
 	cmdContent := payload[mysqlPacketFixLen:]
+	cmdLen := len(cmdContent)
 	if regexpr.Match(cmdContent) {
 		net := pkg.NetworkLayer().NetworkFlow()
 		trans := pkg.TransportLayer().TransportFlow()
+		if srcPort != "" && srcPort != trans.Src().String() {
+			return nil
+		}
+		if dstPort != "" && dstPort != trans.Dst().String() {
+			return nil
+		}
+
 		fmt.Println("net", net.Src(), ":", trans.Src(), "=>", net.Dst(), ":", trans.Dst())
 		if displayBytesLimit > 0 {
-			fmt.Println(string(cmdContent[:displayBytesLimit]))
+			fmt.Println(string(cmdContent[:min(displayBytesLimit, cmdLen)]))
 		}
 
 	}

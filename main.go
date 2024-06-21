@@ -27,6 +27,7 @@ var (
 	pcapFilter                string
 	regexpr                   string
 	displayBytesLimit         int
+	srcPort, dstPort          string
 
 	runCount int
 	runStart time.Time
@@ -144,6 +145,8 @@ func main() {
 	flag.StringVar(&pcapFilter, "pcap-filter", "", "pcap filter")
 	flag.StringVar(&regexpr, "regexpr", "", "regexpr")
 	flag.IntVar(&displayBytesLimit, "display-bytes-limit", 0, "display bytes limit")
+	flag.StringVar(&srcPort, "srcport", "", "source port")
+	flag.StringVar(&dstPort, "dstport", "", "destination port")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
