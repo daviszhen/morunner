@@ -175,7 +175,7 @@ func main() {
 	case Load:
 		load()
 	case DumpMysql:
-		err := analyzeDir(pcapFileName, pcapFilter, regexpr)
+		err := analyzeDir(sigchan, pcapFileName, pcapFilter, regexpr)
 		if err != nil {
 			logger.Error(err.Error())
 		}

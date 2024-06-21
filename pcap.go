@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func analyzeDir(path string, filter, rexpr string) error {
+func analyzeDir(sigs chan os.Signal, path string, filter, rexpr string) error {
 	fInfo, err := os.Stat(path)
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func analyzeDir(path string, filter, rexpr string) error {
 	}
 
 	if !fInfo.IsDir() {
-		return analyzePcap(path, filter, regExpr)
+		return analyzePcap(sigs, path, filter, regExpr)
 	} else {
 		files := make([]string, 0)
 		err = filepath.Walk(path, func(x string, info os.FileInfo, err error) error {
@@ -37,7 +37,7 @@ func analyzeDir(path string, filter, rexpr string) error {
 		}
 		for _, file := range files {
 			if strings.Contains(file, ".pcap") {
-				err = analyzePcap(file, filter, regExpr)
+				err = analyzePcap(sigs, file, filter, regExpr)
 				if err != nil {
 					return err
 				}
@@ -47,7 +47,7 @@ func analyzeDir(path string, filter, rexpr string) error {
 	return nil
 }
 
-func analyzePcap(fname string, filter string, regExpr *regexp.Regexp) error {
+func analyzePcap(sigs chan os.Signal, fname string, filter string, regExpr *regexp.Regexp) error {
 
 	fmt.Println("analyze... ", fname)
 	reader, err := pcap.OpenOffline(fname)
@@ -63,7 +63,16 @@ func analyzePcap(fname string, filter string, regExpr *regexp.Regexp) error {
 	}
 
 	pktSrc := gopacket.NewPacketSource(reader, reader.LinkType())
+	quit := false
 	for pkt := range pktSrc.Packets() {
+		select {
+		case <-sigs:
+			quit = true
+		default:
+		}
+		if quit {
+			break
+		}
 		tcpLayer := pkt.Layer(layers.LayerTypeTCP)
 		tcpPayload := tcpLayer.LayerPayload()
 		err = handleMysql(pkt, tcpPayload, regExpr)
