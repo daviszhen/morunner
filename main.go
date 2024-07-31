@@ -30,6 +30,7 @@ var (
 	srcPort, dstPort          string
 	displayBinary             bool
 	displayText               bool
+	e                         string //execute cmd
 
 	runCount int
 	runStart time.Time
@@ -44,6 +45,7 @@ const (
 	ExecInFrontendSql
 	Load
 	DumpMysql
+	ExecCommand
 	CaseEnd
 )
 
@@ -53,6 +55,7 @@ var kase2str = map[TestCase]string{
 	ExecInFrontendSql: "composite",
 	Load:              "load",
 	DumpMysql:         "dumpmysql",
+	ExecCommand:       "execcommand",
 }
 
 func (kase TestCase) String() string {
@@ -151,6 +154,7 @@ func main() {
 	flag.StringVar(&dstPort, "dstport", "", "destination port")
 	flag.BoolVar(&displayBinary, "display-binary", false, "display binary")
 	flag.BoolVar(&displayText, "display-text", true, "display text")
+	flag.StringVar(&e, "e", "", "execute command and exit")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
@@ -176,6 +180,11 @@ func main() {
 		load()
 	case DumpMysql:
 		err := analyzeDir(sigchan, pcapFileName, pcapFilter, regexpr)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	case ExecCommand:
+		err := execCmd(sigchan, e)
 		if err != nil {
 			logger.Error(err.Error())
 		}
