@@ -38,6 +38,9 @@ http_proxy="" all_proxy="" curl http 127.0.0.1:8080/status
 
 ./main -testcase 4 -pcap-fname path -pcap-filter tcp -regexpr "" -display-bytes-limit 20
 
+### 测试sql
+
+./main -testcase 5 -e "create table mysql.light(content text,embedding vecf32(1024));" -isquery=false -interval="50ms"
 
 ## PR checklist
 

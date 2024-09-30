@@ -31,6 +31,8 @@ var (
 	displayBinary             bool
 	displayText               bool
 	e                         string //execute cmd
+	isQuery                   bool
+	interval                  time.Duration
 
 	runCount int
 	runStart time.Time
@@ -155,6 +157,8 @@ func main() {
 	flag.BoolVar(&displayBinary, "display-binary", false, "display binary")
 	flag.BoolVar(&displayText, "display-text", true, "display text")
 	flag.StringVar(&e, "e", "", "execute command and exit")
+	flag.BoolVar(&isQuery, "isquery", true, "sql is query")
+	flag.DurationVar(&interval, "interval", 0, "execute the sql every interval")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
@@ -169,6 +173,7 @@ func main() {
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, syscall.SIGTERM, syscall.SIGINT)
+	fmt.Println("kase", kase)
 	switch kase {
 	case ShortConn:
 		startTicker(sigchan, reqCount)
@@ -184,7 +189,7 @@ func main() {
 			logger.Error(err.Error())
 		}
 	case ExecCommand:
-		err := execCmd(sigchan, e)
+		err := execCmd(sigchan, e, isQuery, interval)
 		if err != nil {
 			logger.Error(err.Error())
 		}
