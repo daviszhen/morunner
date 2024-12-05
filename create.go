@@ -3,13 +3,14 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func createConn(d time.Duration) {
-	db, err := sql.Open("mysql", "dump:111@tcp(127.0.0.1:6001)/")
+	db, err := sql.Open("mysql", fmt.Sprintf("dump:111@tcp(127.0.0.1:%v)/", port))
 	if err != nil {
 		panic(err)
 	}

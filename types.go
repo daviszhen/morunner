@@ -13,14 +13,16 @@ import (
 type callback func(kase *testKase, startTime, endTime, moTimeNow time.Time)
 
 type testKase struct {
-	sql         string
-	sqlTemplate string
-	dst         []any
-	res         string
-	inputParams []string
-	prepare     callback
-	hook        callback
-	dropResult  bool
+	sql           string
+	sqlTemplate   string
+	dst           []any
+	res           string
+	inputParams   []string
+	prepare       callback
+	hook          callback
+	dropResult    bool
+	prepareParams []any
+	initPrepare   callback
 }
 
 type Result struct {

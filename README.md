@@ -42,6 +42,17 @@ http_proxy="" all_proxy="" curl http 127.0.0.1:8080/status
 
 ./main -testcase 5 -e "create table mysql.light(content text,embedding vecf32(1024));" -isquery=false -interval="50ms"
 
+### 测试prepare
+
+./main -testcase 6
+
+### 分割gorotuine文件
+
+输入：goroutine文件。
+输出：每行一个goroutine栈。保序。输出文件为 "输入文件" + "_split.txt"
+
+./main -testcase 7 -ipath ./goroutine.txt
+
 ## PR checklist
 
 - [ ]  bvt

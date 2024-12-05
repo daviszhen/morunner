@@ -33,6 +33,7 @@ var (
 	e                         string //execute cmd
 	isQuery                   bool
 	interval                  time.Duration
+	ipath                     string
 
 	runCount int
 	runStart time.Time
@@ -48,6 +49,8 @@ const (
 	Load
 	DumpMysql
 	ExecCommand
+	Prepare
+	Split
 	CaseEnd
 )
 
@@ -58,6 +61,8 @@ var kase2str = map[TestCase]string{
 	Load:              "load",
 	DumpMysql:         "dumpmysql",
 	ExecCommand:       "execcommand",
+	Prepare:           "prepare",
+	Split:             "split",
 }
 
 func (kase TestCase) String() string {
@@ -159,6 +164,7 @@ func main() {
 	flag.StringVar(&e, "e", "", "execute command and exit")
 	flag.BoolVar(&isQuery, "isquery", true, "sql is query")
 	flag.DurationVar(&interval, "interval", 0, "execute the sql every interval")
+	flag.StringVar(&ipath, "ipath", "", "path of routine log")
 	flag.Parse()
 
 	logger, _ = zap.NewProduction()
@@ -190,6 +196,16 @@ func main() {
 		}
 	case ExecCommand:
 		err := execCmd(sigchan, e, isQuery, interval)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	case Prepare:
+		err := prepare()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	case Split:
+		err := split(ipath)
 		if err != nil {
 			logger.Error(err.Error())
 		}
@@ -337,6 +353,33 @@ func runCase(kase *testKase) error {
 		kase.prepare(kase, start, start, start)
 	}
 	result, err := conn.Query(kase.sql)
+	if err != nil {
+		logger.Error("query failed", zap.String("sql", kase.sql), zap.Error(err))
+		return err
+	}
+	defer result.Close()
+	end := time.Now()
+
+	if !kase.dropResult {
+		for result.Next() {
+			err = result.Scan(kase.dst...)
+			if err != nil {
+				return errors.Join(err, result.Err())
+			}
+			if kase.hook != nil {
+				kase.hook(kase, start, end, moStartTime)
+			}
+		}
+	}
+	return err
+}
+
+func runPrepareCase(kase *testKase, stmt *sql.Stmt, args []any) error {
+	start := time.Now()
+	if kase.prepare != nil {
+		kase.prepare(kase, start, start, start)
+	}
+	result, err := stmt.Query(args...)
 	if err != nil {
 		logger.Error("query failed", zap.String("sql", kase.sql), zap.Error(err))
 		return err
